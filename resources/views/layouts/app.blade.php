@@ -1,47 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? config('app.name', 'Admin') }}</title>
+    <title>{{ $title ?? config('app.name', 'TindaHub') }}</title>
 
-    {{-- Adjust to match your actual Vite entrypoints --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
-<body class="bg-[#f9fafb]" x-data="{ sidebarOpen: false }">
+<body class="h-full bg-gray-100 text-gray-900 font-sans antialiased overflow-hidden" x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
 
-    <div class="flex min-h-screen">
+    <div class="flex h-full w-full relative overflow-hidden">
 
-        {{-- Mobile off-canvas backdrop --}}
-        <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-black/40 lg:hidden">
+        <!-- Mobile Sidebar Backdrop -->
+        <div x-show="sidebarOpen && window.innerWidth < 1024" x-cloak @click="sidebarOpen = false"
+            class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-40 lg:hidden">
         </div>
 
-        {{-- Sidebar: fixed off-canvas on mobile, static in the flex row on lg+ --}}
-        <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out lg:static lg:translate-x-0">
-            <x-layouts.sidebar />
-        </div>
+        <!-- Vertical Sidebar Component -->
+        <livewire:layouts.sidebar />
 
-        <div class="flex min-w-0 flex-1 flex-col">
+        <!-- Main Workspace (Right Side) -->
+        <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
 
-            {{-- Topbar: only really needed for the mobile hamburger --}}
-            <header class="flex items-center gap-3 border-b border-[#e5e7eb] bg-white px-4 py-3 lg:hidden">
-                <button type="button" @click="sidebarOpen = true"
-                    class="rounded-md p-2 text-[#374151] hover:bg-[#f9fafb]">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-                    </svg>
-                </button>
-                <span class="text-sm font-bold text-[#101828]">{{ $title ?? config('app.name', 'Admin') }}</span>
-            </header>
+            <!-- App Topbar Navbar -->
+            <livewire:layouts.navbar />
 
-            <main class="flex-1 overflow-y-auto">
-                {{ $slot }}
+            <!-- Scrollable Page Content Area -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-100 relative">
+                <div class="max-w-7xl mx-auto w-full">
+                    {{ $slot }}
+                </div>
             </main>
         </div>
     </div>

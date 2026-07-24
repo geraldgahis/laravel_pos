@@ -2,53 +2,40 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     use HasFactory, SoftDeletes;
- 
-    protected $fillable = [
-        'barcode',
-        'name',
-        'description',
-        'selling_price',
-        'cost_price',
-        'quantity',
-        'unit',
-        'image',
-    ];
- 
-    protected $casts = [
-        'selling_price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
-        'quantity' => 'decimal:2',
-    ];
- 
-    /**
-     * Full public URL for the product's image, or null if it doesn't have
-     * one. Views should check for null and render a placeholder — no
-     * physical "default.png" file is required on disk for this to work.
-     */
-    public function getImageUrlAttribute(): ?string
+
+    protected $guarded = [];
+
+    protected function casts(): array
     {
-        if (!$this->image) {
-            return null;
-        }
- 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('public');
- 
-        return $disk->url($this->image);
+        return ['is_active' => 'boolean'];
     }
 
-    public function transactionItems(): HasMany
+    public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        return $this->hasMany(TransactionItem::class);
+        return $query->where('scope', 'global')
+            ->orWhere(function (Builder $q) use ($user) {
+                $q->where('scope', 'private')
+                  ->where('owner_id', $user->id);
+            });
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class);
     }
 }

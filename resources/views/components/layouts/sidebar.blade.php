@@ -1,106 +1,181 @@
-@php
-    // Small local helper so each link's classes don't have to be repeated
-    // four times below. request()->routeIs() supports wildcards like
-    // 'products.*' to keep a parent link highlighted across its sub-pages.
-    $linkClasses = fn(bool $active) => $active
-        ? 'flex items-center gap-3 rounded-md bg-[#101828] px-3 py-2 text-sm font-medium text-white'
-        : 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-[#374151] hover:bg-[#f9fafb] hover:text-[#101828]';
-@endphp
+<?php
 
-<aside class="flex h-full w-64 flex-col border-r border-[#e5e7eb] bg-white">
+use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
-    <div class="flex items-center gap-2 border-b border-[#e5e7eb] px-6 py-5">
-        <div class="flex h-8 w-8 items-center justify-center rounded-md bg-[#101828] text-sm font-bold text-white">
-            S
-        </div>
-        <span class="text-sm font-bold text-[#101828]">{{ config('app.name', 'Admin') }}</span>
+new class extends Component {
+    public function logout()
+    {
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return $this->redirect('/login', navigate: true);
+    }
+};
+?>
+
+<!-- Always visible on desktop (lg:translate-x-0), togglable on mobile -->
+<aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+    class="fixed lg:relative inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col z-50 transform transition-transform duration-300 ease-in-out shrink-0 h-full">
+
+    <!-- Sidebar Header / Logo -->
+    <div class="h-16 flex items-center px-6 border-b border-gray-200 justify-between shrink-0">
+        <a href="/dashboard" wire:navigate class="flex items-center gap-3">
+            <div
+                class="inline-flex items-center justify-center w-8 h-8 bg-linear-to-br from-indigo-600 to-indigo-800 text-white rounded-lg shadow-sm">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+                    <path d="M2 7h20" />
+                    <path
+                        d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7" />
+                </svg>
+            </div>
+            <span class="font-extrabold text-lg text-gray-900 tracking-tight">Tinda<span
+                    class="text-indigo-600">Hub</span></span>
+        </a>
+
+        <!-- Mobile Close Button -->
+        <button type="button" class="lg:hidden text-gray-400 hover:text-gray-900 transition-colors"
+            @click="sidebarOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
 
-    <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+    <!-- Active Store Switcher -->
+    <div class="p-4 border-b border-gray-100 shrink-0">
+        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Active Store</label>
+        <select
+            class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer">
+            <option>Main Branch</option>
+            <option>Barangay Extension</option>
+        </select>
+    </div>
 
+    <!-- Scrollable Navigation Area -->
+    <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
         <div>
-            <p class="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#99a1af]">Overview</p>
-            <div class="mt-1 space-y-0.5">
-                <a href="{{ route('dashboard') }}" wire:navigate
-                    class="{{ $linkClasses(request()->routeIs('dashboard')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                    </svg>
-                    Dashboard
-                </a>
-            </div>
-        </div>
-
-        <div>
-            <p class="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#99a1af]">Inventory</p>
-            <div class="mt-1 space-y-0.5">
-                <a href="{{ route('products.index') }}" wire:navigate
-                    class="{{ $linkClasses(request()->routeIs('products.index') || request()->routeIs('products.show') || request()->routeIs('products.edit')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
-                    Products
-                </a>
-                <a href="{{ route('products.create') }}" wire:navigate
-                    class="{{ $linkClasses(request()->routeIs('products.create')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Scan / Add Product
-                </a>
-            </div>
-        </div>
-
-        <div>
-            <p class="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#99a1af]">Sales</p>
-            <div class="mt-1 space-y-0.5">
-                {{--
-                    Assumes a named route 'pos.index' for the POS Terminal
-                    component built earlier in this project. Adjust the
-                    route name here if yours differs.
-                --}}
-                <a href="#" wire:navigate class="{{ $linkClasses(request()->routeIs('pos.*')) }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                    </svg>
-                    POS / Transactions
-                </a>
-            </div>
-        </div>
-
-        <div>
-            <p class="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#99a1af]">Insights</p>
-            <div class="mt-1 space-y-0.5">
-                {{-- Not built yet in this project — shown but not linked --}}
-                <span
-                    class="flex cursor-not-allowed items-center justify-between rounded-md px-3 py-2 text-sm text-[#99a1af]">
-                    <span class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <h3 class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Store Management</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/dashboard" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                         </svg>
-                        Reports
-                    </span>
-                    <span class="rounded bg-[#f3f4f6] px-1.5 py-0.5 text-[10px] font-semibold uppercase">Soon</span>
-                </span>
-            </div>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/pos" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('pos') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Point of Sale (POS)
+                    </a>
+                </li>
+                <li>
+                    <a href="/inventory" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('inventory*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        Sari-Sari Inventory
+                    </a>
+                </li>
+                <li>
+                    <a href="/transactions" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('transactions*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Daily Transactions
+                    </a>
+                </li>
+            </ul>
         </div>
 
+        <div>
+            <h3 class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Administration</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="/staff" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('staff*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Manage Staff
+                    </a>
+                </li>
+                <li>
+                    <a href="/reports" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('reports*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Sales Reports
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors {{ request()->routeIs('settings*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Store Settings
+                    </a>
+                </li>
+            </ul>
+        </div>
     </nav>
 
-    <div class="border-t border-[#e5e7eb] p-4">
-        <p class="text-xs text-[#99a1af]">Signed in</p>
-        @auth
-            <p class="truncate text-sm font-medium text-[#101828]">{{ auth()->user()->name }}</p>
-        @endauth
-    </div>
+    <!-- Sidebar Footer (User Account) -->
+    <div class="p-4 border-t border-gray-200 bg-gray-50/50 shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div
+                    class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0 border border-indigo-200">
+                    {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                </div>
+                <div class="truncate">
+                    <p class="text-sm font-bold text-gray-900 truncate">{{ auth()->user()->name ?? 'Store Owner' }}</p>
+                    <p class="text-[11px] font-medium text-gray-500 truncate capitalize">
+                        {{ auth()->user()->role ?? 'Admin' }}</p>
+                </div>
+            </div>
 
+            <button wire:click="logout" type="button"
+                class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                title="Sign Out">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
+        </div>
+    </div>
 </aside>

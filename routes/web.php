@@ -2,11 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/test', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::livewire('/', 'pages::auth.login')->name('/');
+Route::livewire('/', 'pages::welcome')->name('/');
+Route::livewire('/login', 'pages::auth.login')->name('auth.login');
+Route::livewire('/register', 'pages::auth.register')->name('auth.register');
 Route::livewire('/dashboard', 'pages::dashboard')->name('dashboard');
 
 Route::livewire('/products', 'pages::products.index')->name('products.index');
